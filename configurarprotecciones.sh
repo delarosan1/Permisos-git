@@ -99,7 +99,19 @@ configure_branch_protection() {
     local attempt=1
 
     # JSON de configuración compactado
-    protection_json="{\"required_status_checks\":{\"strict\":true,\"contexts\":[]},\"enforce_admins\":true,\"required_pull_request_reviews\":{\"dismiss_stale_reviews\":true,\"require_code_owner_reviews\":false,\"required_approving_review_count\":1},\"restrictions\":{\"users\":[\"$github_user\"],\"teams\":[],\"apps\":[]},\"required_linear_history\":true,\"allow_force_pushes\":false,\"allow_deletions\":false}"
+    protection_json="{
+        \"required_status_checks\": null,
+        \"enforce_admins\": false,
+        \"required_pull_request_reviews\": null,
+        \"restrictions\": {
+            \"users\": [\"$github_user\"],
+            \"teams\": [],
+            \"apps\": []
+        },
+        \"required_linear_history\": true,
+        \"allow_force_pushes\": true,
+        \"allow_deletions\": false
+    }"
 
     while [ $attempt -le $max_attempts ]; do
         if echo "$protection_json" | gh api -X PUT "repos/$ORG/$repo/branches/$branch/protection" \
@@ -144,13 +156,7 @@ for repo in $repos; do
     for github_user in "${!COLLABORATORS[@]}"; do
         branch_name="${COLLABORATORS[$github_user]}"
         
-        log_info "Verificando $branch_name para $github_user..."
-        
-        # Verificar si ya tiene la configuración correcta
-        if check_user_access "$repo" "$branch_name" "$github_user"; then
-            log_info "Protecciones ya configuradas para $branch_name ($github_user)"
-            continue
-        fi
+        log_info "Configurando protecciones para $branch_name ($github_user)..."
         
         # Crear rama si no existe
         if ! create_branch_if_needed "$repo" "$branch_name" "$github_user"; then
@@ -158,7 +164,7 @@ for repo in $repos; do
             continue
         fi
 
-        # Configurar protecciones
+        # Configurar/actualizar protecciones
         configure_branch_protection "$repo" "$branch_name" "$github_user"
     done
 done
