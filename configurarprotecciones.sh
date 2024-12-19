@@ -108,9 +108,12 @@ configure_branch_protection() {
             \"teams\": [],
             \"apps\": []
         },
-        \"required_linear_history\": true,
         \"allow_force_pushes\": true,
-        \"allow_deletions\": false
+        \"allow_deletions\": false,
+        \"required_linear_history\": false,
+        \"allow_merge_commit\": true,
+        \"allow_squash_merge\": true,
+        \"allow_rebase_merge\": true
     }"
 
     while [ $attempt -le $max_attempts ]; do
